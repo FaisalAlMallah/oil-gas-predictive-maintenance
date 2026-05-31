@@ -1,12 +1,12 @@
 import json
 from http.server import BaseHTTPRequestHandler
 
-from src.inference import REQUIRED_COLUMNS, predict_failure
+from src.inference import REQUEST_REQUIRED_COLUMNS, predict_failure
 
 
 def build_prediction_response(input_data):
     missing_columns = [
-        column for column in REQUIRED_COLUMNS if column not in input_data
+        column for column in REQUEST_REQUIRED_COLUMNS if column not in input_data
     ]
 
     if missing_columns:

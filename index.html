@@ -83,11 +83,12 @@
         }
 
         .field select,
-        .field input[type="range"] {
+        .field input[type="number"] {
             width: 100%;
         }
 
-        .field select {
+        .field select,
+        .field input[type="number"] {
             padding: 10px 12px;
             border: 1px solid var(--border);
             border-radius: 10px;
@@ -96,21 +97,17 @@
             font-size: 15px;
         }
 
-        .range-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .field input[type="number"]:focus,
+        .field select:focus {
+            outline: 2px solid #9ca3af;
+            outline-offset: 2px;
+            border-color: #9ca3af;
         }
 
-        .range-value {
-            min-width: 72px;
-            text-align: right;
-            font-weight: 700;
-            color: var(--accent-strong);
-        }
-
-        input[type="range"] {
-            accent-color: var(--accent);
+        .field-note {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .actions {
@@ -203,11 +200,14 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            gap: 8px;
+            min-height: 40px;
+            padding: 0 12px;
             border: 1px solid var(--border);
             border-radius: 10px;
             background: #ffffff;
+            color: #0a66c2;
+            font-weight: 700;
         }
 
         .linkedin-link:hover {
@@ -223,14 +223,9 @@
                 grid-template-columns: 1fr;
             }
 
-            .range-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .range-value {
-                text-align: left;
-                min-width: 0;
+            .linkedin-link {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -244,32 +239,6 @@
             <form id="prediction-form">
                 <div class="grid">
                     <div class="field">
-                        <label for="machine_id">Machine ID</label>
-                        <select id="machine_id" name="machine_id">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                            <option value="6">6</option>
-                            <option value="7">7</option>
-                            <option value="8">8</option>
-                            <option value="9">9</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12">12</option>
-                            <option value="13">13</option>
-                            <option value="14">14</option>
-                            <option value="15">15</option>
-                            <option value="16">16</option>
-                            <option value="17">17</option>
-                            <option value="18">18</option>
-                            <option value="19">19</option>
-                            <option value="20">20</option>
-                        </select>
-                    </div>
-
-                    <div class="field">
                         <label for="machine_type">Machine Type</label>
                         <select id="machine_type" name="machine_type">
                             <option value="Pump">Pump</option>
@@ -277,46 +246,37 @@
                             <option value="CNC">CNC</option>
                             <option value="Robotic Arm">Robotic Arm</option>
                         </select>
+                        <div class="field-note">Machine ID is assigned automatically: CNC 1-5, Pump 6-10, Compressor 11-15, Robotic Arm 16-20.</div>
                     </div>
 
                     <div class="field">
                         <label for="vibration_rms">Vibration RMS</label>
-                        <div class="range-row">
-                            <input id="vibration_rms" name="vibration_rms" type="range" min="0.35" max="10" step="0.01" value="1.2">
-                            <span class="range-value" data-output-for="vibration_rms">1.20</span>
-                        </div>
+                        <input id="vibration_rms" name="vibration_rms" type="number" min="0.35" max="10" step="0.01" value="1.2" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 0.35 to 10.00</div>
                     </div>
 
                     <div class="field">
-                        <label for="temperature_motor">Temperature Motor</label>
-                        <div class="range-row">
-                            <input id="temperature_motor" name="temperature_motor" type="range" min="28" max="95" step="0.1" value="65">
-                            <span class="range-value" data-output-for="temperature_motor">65.0</span>
-                        </div>
+                        <label for="temperature_motor">Temperature Motor (°C)</label>
+                        <input id="temperature_motor" name="temperature_motor" type="number" min="28" max="95" step="0.1" value="65" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 28.0°C to 95.0°C</div>
                     </div>
 
                     <div class="field">
                         <label for="current_phase_avg">Current Phase Avg</label>
-                        <div class="range-row">
-                            <input id="current_phase_avg" name="current_phase_avg" type="range" min="2.2" max="35" step="0.1" value="10">
-                            <span class="range-value" data-output-for="current_phase_avg">10.0</span>
-                        </div>
+                        <input id="current_phase_avg" name="current_phase_avg" type="number" min="2.2" max="35" step="0.1" value="10" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 2.2 to 35.0</div>
                     </div>
 
                     <div class="field">
                         <label for="pressure_level">Pressure Level</label>
-                        <div class="range-row">
-                            <input id="pressure_level" name="pressure_level" type="range" min="10.1" max="206.5" step="0.1" value="80">
-                            <span class="range-value" data-output-for="pressure_level">80.0</span>
-                        </div>
+                        <input id="pressure_level" name="pressure_level" type="number" min="10.1" max="206.5" step="0.1" value="80" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 10.1 to 206.5</div>
                     </div>
 
                     <div class="field">
                         <label for="rpm">RPM</label>
-                        <div class="range-row">
-                            <input id="rpm" name="rpm" type="range" min="124.1" max="4098.8" step="0.1" value="2400">
-                            <span class="range-value" data-output-for="rpm">2400.0</span>
-                        </div>
+                        <input id="rpm" name="rpm" type="number" min="124.1" max="4098.8" step="0.1" value="2400" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 124.1 to 4098.8</div>
                     </div>
 
                     <div class="field">
@@ -330,24 +290,20 @@
 
                     <div class="field">
                         <label for="hours_since_maintenance">Hours Since Maintenance</label>
-                        <div class="range-row">
-                            <input id="hours_since_maintenance" name="hours_since_maintenance" type="range" min="0" max="575.63" step="0.01" value="120">
-                            <span class="range-value" data-output-for="hours_since_maintenance">120.00</span>
-                        </div>
+                        <input id="hours_since_maintenance" name="hours_since_maintenance" type="number" min="0" max="575.63" step="0.01" value="120" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 0.00 to 575.63</div>
                     </div>
 
                     <div class="field">
-                        <label for="ambient_temp">Ambient Temp</label>
-                        <div class="range-row">
-                            <input id="ambient_temp" name="ambient_temp" type="range" min="8" max="18" step="0.1" value="12">
-                            <span class="range-value" data-output-for="ambient_temp">12.0</span>
-                        </div>
+                        <label for="ambient_temp">Ambient Temp (°C)</label>
+                        <input id="ambient_temp" name="ambient_temp" type="number" min="8" max="18" step="0.1" value="12" inputmode="decimal" required>
+                        <div class="field-note">Allowed range: 8.0°C to 18.0°C</div>
                     </div>
                 </div>
 
                 <div class="actions">
                     <button id="submit-button" type="submit">Predict</button>
-                    <span class="helper-text">Numeric fields use sliders based on the model training range.</span>
+                    <span class="helper-text">Numeric fields accept typed values. Machine ID is inferred from the selected machine type. Limits reflect the model training data.</span>
                 </div>
             </form>
 
@@ -362,12 +318,14 @@
                     class="linkedin-link"
                     href="https://www.linkedin.com/in/faisal-al-mallah/"
                     target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open LinkedIn profile"
+                    rel="noopener noreferrer"
+                    aria-label="Open Faisal Al-Mallah LinkedIn profile"
+                    title="Open Faisal Al-Mallah LinkedIn profile"
                 >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M4.98 3.5A2.48 2.48 0 1 0 5 8.46 2.48 2.48 0 0 0 4.98 3.5ZM3 9h4v12H3Zm7 0h3.83v1.64h.05c.53-1.01 1.84-2.08 3.79-2.08 4.05 0 4.8 2.66 4.8 6.12V21h-4v-5.59c0-1.33-.03-3.05-1.86-3.05-1.87 0-2.16 1.46-2.16 2.96V21h-4Z"/>
                     </svg>
+                    <span>LinkedIn</span>
                 </a>
             </footer>
         </main>
@@ -379,21 +337,6 @@
         const resultElement = document.getElementById("result");
         const resultTitle = document.getElementById("result-title");
         const resultProbability = document.getElementById("result-probability");
-
-        function updateRangeValue(input) {
-            const output = document.querySelector(`[data-output-for="${input.id}"]`);
-            if (!output) {
-                return;
-            }
-
-            const decimals = input.step.includes(".") ? input.step.split(".")[1].length : 0;
-            output.textContent = Number(input.value).toFixed(decimals);
-        }
-
-        document.querySelectorAll('input[type="range"]').forEach((input) => {
-            updateRangeValue(input);
-            input.addEventListener("input", () => updateRangeValue(input));
-        });
 
         function showResult(type, title, probabilityText) {
             resultElement.className = `result visible ${type}`;
@@ -408,7 +351,6 @@
             resultElement.className = "result";
 
             const payload = {
-                machine_id: Number(document.getElementById("machine_id").value),
                 machine_type: document.getElementById("machine_type").value,
                 vibration_rms: Number(document.getElementById("vibration_rms").value),
                 temperature_motor: Number(document.getElementById("temperature_motor").value),

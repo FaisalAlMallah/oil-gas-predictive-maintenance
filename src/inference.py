@@ -7,8 +7,20 @@ import pandas as pd
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "xgboost_pipeline.pkl"
 
-REQUIRED_COLUMNS = [
+MODEL_COLUMNS = [
     "machine_id",
+    "machine_type",
+    "vibration_rms",
+    "temperature_motor",
+    "current_phase_avg",
+    "pressure_level",
+    "rpm",
+    "operating_mode",
+    "hours_since_maintenance",
+    "ambient_temp",
+]
+
+REQUEST_REQUIRED_COLUMNS = [
     "machine_type",
     "vibration_rms",
     "temperature_motor",
@@ -36,6 +48,18 @@ MACHINE_TYPE_OPTIONS = {
     "compressor": "Compressor",
     "pump": "Pump",
     "robotic arm": "Robotic Arm",
+}
+MACHINE_TYPE_ID_RANGES = {
+    "CNC": range(1, 6),
+    "Pump": range(6, 11),
+    "Compressor": range(11, 16),
+    "Robotic Arm": range(16, 21),
+}
+MACHINE_TYPE_DEFAULT_IDS = {
+    "CNC": 3,
+    "Pump": 8,
+    "Compressor": 13,
+    "Robotic Arm": 18,
 }
 OPERATING_MODE_OPTIONS = {
     "idle": "idle",
@@ -71,6 +95,19 @@ def _normalize_machine_type(value):
     return MACHINE_TYPE_OPTIONS[normalized_value]
 
 
+def _infer_machine_id(machine_type):
+    return MACHINE_TYPE_DEFAULT_IDS[machine_type]
+
+
+def _validate_machine_id_for_machine_type(machine_id, machine_type):
+    valid_ids = MACHINE_TYPE_ID_RANGES[machine_type]
+    if machine_id not in valid_ids:
+        raise ValueError(
+            f"machine_id must be within {valid_ids.start}-{valid_ids.stop - 1} for machine_type {machine_type}."
+        )
+    return machine_id
+
+
 def _normalize_operating_mode(value):
     normalized_value = str(value).strip().lower()
     if normalized_value not in OPERATING_MODE_OPTIONS:
@@ -79,13 +116,20 @@ def _normalize_operating_mode(value):
 
 
 def normalize_input_data(input_data):
-    missing_columns = [column for column in REQUIRED_COLUMNS if column not in input_data]
+    missing_columns = [column for column in REQUEST_REQUIRED_COLUMNS if column not in input_data]
     if missing_columns:
         raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
 
     normalized_data = dict(input_data)
-    normalized_data["machine_id"] = _normalize_machine_id(input_data["machine_id"])
     normalized_data["machine_type"] = _normalize_machine_type(input_data["machine_type"])
+    if "machine_id" in input_data and input_data["machine_id"] not in (None, ""):
+        machine_id = _normalize_machine_id(input_data["machine_id"])
+        normalized_data["machine_id"] = _validate_machine_id_for_machine_type(
+            machine_id,
+            normalized_data["machine_type"],
+        )
+    else:
+        normalized_data["machine_id"] = _infer_machine_id(normalized_data["machine_type"])
     normalized_data["operating_mode"] = _normalize_operating_mode(input_data["operating_mode"])
 
     for column in NUMERIC_COLUMNS:
@@ -107,7 +151,6 @@ def predict_failure(input_data):
 if __name__ == "__main__":
 
     sample_machine = {
-        "machine_id": 1,
         "machine_type": "Pump",
         "vibration_rms": 0.8,
         "temperature_motor": 85,
