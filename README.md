@@ -5,7 +5,7 @@
 Start the local web server:
 
 ```bash
-python app.py
+python local_server.py
 ```
 
 Then open:

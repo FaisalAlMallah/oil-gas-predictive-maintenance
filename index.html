@@ -387,7 +387,7 @@
                 );
             } catch (error) {
                 const message = window.location.protocol === "file:"
-                    ? "Open the app through `python app.py` at http://127.0.0.1:8000 so /api/predict is available."
+                    ? "Open the app through `python local_server.py` at http://127.0.0.1:8000 so /api/predict is available."
                     : "The app could not reach /api/predict.";
                 showResult("error", "Unable to predict", message);
             } finally {
