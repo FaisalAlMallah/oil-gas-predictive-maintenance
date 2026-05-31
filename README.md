@@ -36,12 +36,12 @@ Feature scaling
 One hot encoding 
 
 
-Base Line model:
-The Logistic Regression baseline achieved 94.85% test accuracy and an F1-score of 0.81 for predicting failures within 24 hours. The model performs similarly on training and test data, suggesting no major overfitting. However, the model still misses 130 actual failures, so improving recall/F1-score for the failure class should be a focus in future models.
+**Base Line model:**
+The Logistic Regression baseline achieved **94.85% test accuracy** and an **F1-score of 0.81** for predicting failures within 24 hours. The model performs similarly on training and test data, suggesting no major overfitting. However, the model still misses 130 actual failures, so improving recall/F1-score for the failure class should be a focus in future models.
 
 
-Model:
-The XGBoost model achieved 98.77% test accuracy and an F1-score of 0.96 for predicting failures within 24 hours. It performed much better than the Logistic Regression baseline, reducing missed failures from 130 to only 20. However, the training score is almost perfect, so slight overfitting may be present and should be checked with cross-validation or tuning.
+**Model:**
+The XGBoost model achieved **98.77% test accuracy** and an **F1-score of 0.96** for predicting failures within 24 hours. It performed much better than the Logistic Regression baseline, **reducing missed failures from 130 to only 20.** 
  
 
 
