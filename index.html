@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Maintenance</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --background: #f3f4f6;
+            --surface: #ffffff;
+            --surface-muted: #f9fafb;
+            --text: #111827;
+            --text-muted: #4b5563;
+            --border: #d1d5db;
+            --accent: #1f2937;
+            --accent-strong: #111827;
+            --success-bg: #ecfdf5;
+            --success-text: #065f46;
+            --warning-bg: #fff7ed;
+            --warning-text: #9a3412;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(960px, 100%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 12px 32px rgba(17, 24, 39, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            margin: 0 0 24px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px 20px;
+        }
+
+        .field {
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .field select,
+        .field input[type="range"] {
+            width: 100%;
+        }
+
+        .field select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #ffffff;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .range-value {
+            min-width: 72px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--accent-strong);
+        }
+
+        input[type="range"] {
+            accent-color: var(--accent);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #ffffff;
+            padding: 14px 22px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .helper-text {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .result {
+            display: none;
+            margin-top: 24px;
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid var(--border);
+        }
+
+        .result.visible {
+            display: block;
+        }
+
+        .result.success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border-color: #a7f3d0;
+        }
+
+        .result.warning {
+            background: var(--warning-bg);
+            color: var(--warning-text);
+            border-color: #fdba74;
+        }
+
+        .result.error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border-color: #fca5a5;
+        }
+
+        .result h2 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        .result p {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .footer a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .linkedin-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #ffffff;
+        }
+
+        .linkedin-link:hover {
+            background: #f3f4f6;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 22px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .range-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .range-value {
+                text-align: left;
+                min-width: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <main class="card">
+            <h1>Predictive Maintenance</h1>
+            <p class="subtitle">Enter machine values, click Predict, and review whether a failure is likely within the next 24 hours.</p>
+
+            <form id="prediction-form">
+                <div class="grid">
+                    <div class="field">
+                        <label for="machine_id">Machine ID</label>
+                        <select id="machine_id" name="machine_id">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                            <option value="17">17</option>
+                            <option value="18">18</option>
+                            <option value="19">19</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="machine_type">Machine Type</label>
+                        <select id="machine_type" name="machine_type">
+                            <option value="Pump">Pump</option>
+                            <option value="Compressor">Compressor</option>
+                            <option value="CNC">CNC</option>
+                            <option value="Robotic Arm">Robotic Arm</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="vibration_rms">Vibration RMS</label>
+                        <div class="range-row">
+                            <input id="vibration_rms" name="vibration_rms" type="range" min="0.35" max="10" step="0.01" value="1.2">
+                            <span class="range-value" data-output-for="vibration_rms">1.20</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="temperature_motor">Temperature Motor</label>
+                        <div class="range-row">
+                            <input id="temperature_motor" name="temperature_motor" type="range" min="28" max="95" step="0.1" value="65">
+                            <span class="range-value" data-output-for="temperature_motor">65.0</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="current_phase_avg">Current Phase Avg</label>
+                        <div class="range-row">
+                            <input id="current_phase_avg" name="current_phase_avg" type="range" min="2.2" max="35" step="0.1" value="10">
+                            <span class="range-value" data-output-for="current_phase_avg">10.0</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="pressure_level">Pressure Level</label>
+                        <div class="range-row">
+                            <input id="pressure_level" name="pressure_level" type="range" min="10.1" max="206.5" step="0.1" value="80">
+                            <span class="range-value" data-output-for="pressure_level">80.0</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="rpm">RPM</label>
+                        <div class="range-row">
+                            <input id="rpm" name="rpm" type="range" min="124.1" max="4098.8" step="0.1" value="2400">
+                            <span class="range-value" data-output-for="rpm">2400.0</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="operating_mode">Operating Mode</label>
+                        <select id="operating_mode" name="operating_mode">
+                            <option value="normal">normal</option>
+                            <option value="idle">idle</option>
+                            <option value="peak">peak</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="hours_since_maintenance">Hours Since Maintenance</label>
+                        <div class="range-row">
+                            <input id="hours_since_maintenance" name="hours_since_maintenance" type="range" min="0" max="575.63" step="0.01" value="120">
+                            <span class="range-value" data-output-for="hours_since_maintenance">120.00</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="ambient_temp">Ambient Temp</label>
+                        <div class="range-row">
+                            <input id="ambient_temp" name="ambient_temp" type="range" min="8" max="18" step="0.1" value="12">
+                            <span class="range-value" data-output-for="ambient_temp">12.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="submit-button" type="submit">Predict</button>
+                    <span class="helper-text">Numeric fields use sliders based on the model training range.</span>
+                </div>
+            </form>
+
+            <section id="result" class="result" aria-live="polite">
+                <h2 id="result-title"></h2>
+                <p id="result-probability"></p>
+            </section>
+
+            <footer class="footer">
+                <div>Contact me at: <a href="mailto:faisalmallah7@gmail.com">faisalmallah7@gmail.com</a></div>
+                <a
+                    class="linkedin-link"
+                    href="https://www.linkedin.com/in/faisal-al-mallah/"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open LinkedIn profile"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M4.98 3.5A2.48 2.48 0 1 0 5 8.46 2.48 2.48 0 0 0 4.98 3.5ZM3 9h4v12H3Zm7 0h3.83v1.64h.05c.53-1.01 1.84-2.08 3.79-2.08 4.05 0 4.8 2.66 4.8 6.12V21h-4v-5.59c0-1.33-.03-3.05-1.86-3.05-1.87 0-2.16 1.46-2.16 2.96V21h-4Z"/>
+                    </svg>
+                </a>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const form = document.getElementById("prediction-form");
+        const submitButton = document.getElementById("submit-button");
+        const resultElement = document.getElementById("result");
+        const resultTitle = document.getElementById("result-title");
+        const resultProbability = document.getElementById("result-probability");
+
+        function updateRangeValue(input) {
+            const output = document.querySelector(`[data-output-for="${input.id}"]`);
+            if (!output) {
+                return;
+            }
+
+            const decimals = input.step.includes(".") ? input.step.split(".")[1].length : 0;
+            output.textContent = Number(input.value).toFixed(decimals);
+        }
+
+        document.querySelectorAll('input[type="range"]').forEach((input) => {
+            updateRangeValue(input);
+            input.addEventListener("input", () => updateRangeValue(input));
+        });
+
+        function showResult(type, title, probabilityText) {
+            resultElement.className = `result visible ${type}`;
+            resultTitle.textContent = title;
+            resultProbability.textContent = probabilityText;
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = "Predicting...";
+            resultElement.className = "result";
+
+            const payload = {
+                machine_id: Number(document.getElementById("machine_id").value),
+                machine_type: document.getElementById("machine_type").value,
+                vibration_rms: Number(document.getElementById("vibration_rms").value),
+                temperature_motor: Number(document.getElementById("temperature_motor").value),
+                current_phase_avg: Number(document.getElementById("current_phase_avg").value),
+                pressure_level: Number(document.getElementById("pressure_level").value),
+                rpm: Number(document.getElementById("rpm").value),
+                operating_mode: document.getElementById("operating_mode").value,
+                hours_since_maintenance: Number(document.getElementById("hours_since_maintenance").value),
+                ambient_temp: Number(document.getElementById("ambient_temp").value)
+            };
+
+            try {
+                const response = await fetch("/api/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMessage = data.error || "Prediction request failed.";
+                    showResult("error", "Unable to predict", errorMessage);
+                    return;
+                }
+
+                const resultType = data.prediction === 1 ? "warning" : "success";
+                showResult(
+                    resultType,
+                    data.result,
+                    `Failure probability: ${data.failure_probability_percent}%`
+                );
+            } catch (error) {
+                const message = window.location.protocol === "file:"
+                    ? "Open the app through `python app.py` at http://127.0.0.1:8000 so /api/predict is available."
+                    : "The app could not reach /api/predict.";
+                showResult("error", "Unable to predict", message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Predict";
+            }
+        });
+    </script>
+</body>
+</html>
