@@ -1,5 +1,5 @@
 # oil-gas-predictive-maintenance
-Try the project: https://oil-gas-predictive-maintenance.vercel.app/	
+**Try the project:** https://oil-gas-predictive-maintenance.vercel.app/	
 
 Project Title: Oil & Gas Predictive Maintenance: Failure Prediction Within 24 Hours 
 
