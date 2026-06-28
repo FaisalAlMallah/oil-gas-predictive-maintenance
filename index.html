@@ -179,6 +179,77 @@
             line-height: 1.5;
         }
 
+        .explanation {
+            display: none;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid currentColor;
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation h3 {
+            margin: 0 0 14px;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .explanation-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .explanation-row {
+            display: grid;
+            gap: 7px;
+        }
+
+        .impact-meta {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            color: var(--text);
+        }
+
+        .impact-feature {
+            font-weight: 700;
+        }
+
+        .impact-value {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .impact-track {
+            width: 100%;
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e5e7eb;
+        }
+
+        .impact-bar {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        .impact-bar.increase {
+            background: #16a34a;
+        }
+
+        .impact-bar.decrease {
+            background: #dc2626;
+        }
+
+        .impact-direction {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
         .footer {
             display: flex;
             align-items: center;
@@ -310,6 +381,10 @@
             <section id="result" class="result" aria-live="polite">
                 <h2 id="result-title"></h2>
                 <p id="result-probability"></p>
+                <div id="explanation" class="explanation">
+                    <h3>Why this prediction?</h3>
+                    <div id="explanation-list" class="explanation-list"></div>
+                </div>
             </section>
 
             <footer class="footer">
@@ -337,11 +412,88 @@
         const resultElement = document.getElementById("result");
         const resultTitle = document.getElementById("result-title");
         const resultProbability = document.getElementById("result-probability");
+        const explanationElement = document.getElementById("explanation");
+        const explanationList = document.getElementById("explanation-list");
 
-        function showResult(type, title, probabilityText) {
+        function formatFeatureName(feature) {
+            return feature
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+        }
+
+        function formatFeatureValue(value) {
+            if (typeof value === "number") {
+                return Number.isInteger(value) ? String(value) : value.toFixed(2);
+            }
+            return String(value);
+        }
+
+        function renderExplanation(explanation) {
+            explanationList.innerHTML = "";
+
+            if (!Array.isArray(explanation) || explanation.length === 0) {
+                explanationElement.className = "explanation";
+                return;
+            }
+
+            const sortedExplanation = [...explanation]
+                .sort((a, b) => Math.abs(b.shap_value) - Math.abs(a.shap_value))
+                .slice(0, 6);
+            const maxImpact = Math.max(
+                ...sortedExplanation.map((item) => Math.abs(item.shap_value)),
+                0
+            );
+
+            sortedExplanation.forEach((item) => {
+                const direction = item.direction === "increase" ? "increase" : "decrease";
+                const width = maxImpact === 0
+                    ? 8
+                    : Math.max(8, (Math.abs(item.shap_value) / maxImpact) * 100);
+                const directionText = direction === "increase"
+                    ? "Increases failure risk"
+                    : "Decreases failure risk";
+
+                const row = document.createElement("div");
+                row.className = "explanation-row";
+
+                const meta = document.createElement("div");
+                meta.className = "impact-meta";
+
+                const feature = document.createElement("div");
+                feature.className = "impact-feature";
+                feature.textContent = formatFeatureName(item.feature);
+
+                const value = document.createElement("div");
+                value.className = "impact-value";
+                value.textContent = `= ${formatFeatureValue(item.value)}`;
+
+                const track = document.createElement("div");
+                track.className = "impact-track";
+
+                const bar = document.createElement("div");
+                bar.className = `impact-bar ${direction}`;
+                bar.style.width = `${width}%`;
+                bar.setAttribute("aria-label", `${directionText}: SHAP value ${item.shap_value}`);
+
+                const label = document.createElement("div");
+                label.className = "impact-direction";
+                label.textContent = directionText;
+
+                meta.append(feature, value);
+                track.append(bar);
+                row.append(meta, track, label);
+                explanationList.append(row);
+            });
+
+            explanationElement.className = "explanation visible";
+        }
+
+        function showResult(type, title, probabilityText, explanation = []) {
             resultElement.className = `result visible ${type}`;
             resultTitle.textContent = title;
             resultProbability.textContent = probabilityText;
+            renderExplanation(explanation);
         }
 
         form.addEventListener("submit", async (event) => {
@@ -349,6 +501,8 @@
             submitButton.disabled = true;
             submitButton.textContent = "Predicting...";
             resultElement.className = "result";
+            explanationElement.className = "explanation";
+            explanationList.innerHTML = "";
 
             const payload = {
                 machine_type: document.getElementById("machine_type").value,
@@ -383,7 +537,8 @@
                 showResult(
                     resultType,
                     data.result,
-                    `Failure probability: ${data.failure_probability_percent}%`
+                    `Failure probability: ${data.failure_probability_percent}%`,
+                    data.explanation
                 );
             } catch (error) {
                 const message = window.location.protocol === "file:"

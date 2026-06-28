@@ -1,7 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler
 
-from src.inference import REQUEST_REQUIRED_COLUMNS, predict_failure
+from src.inference import REQUEST_REQUIRED_COLUMNS, predict_failure_with_explanation
 
 
 def build_prediction_response(input_data):
@@ -18,7 +18,7 @@ def build_prediction_response(input_data):
             },
         )
 
-    prediction, probability = predict_failure(input_data)
+    prediction, probability, explanation = predict_failure_with_explanation(input_data)
 
     if prediction == 1:
         result = "Failure likely within 24 hours"
@@ -29,8 +29,10 @@ def build_prediction_response(input_data):
         200,
         {
             "prediction": prediction,
+            "probability": probability,
             "failure_probability": probability,
             "failure_probability_percent": round(probability * 100, 2),
+            "explanation": explanation,
             "result": result,
         },
     )

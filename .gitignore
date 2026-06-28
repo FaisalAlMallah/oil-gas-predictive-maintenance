@@ -225,3 +225,5 @@ models/
 .env
 __pycache__/
 .ipynb_checkpoints/
+
+AGENT.md

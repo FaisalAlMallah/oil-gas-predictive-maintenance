@@ -4,6 +4,7 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+import xgboost as xgb
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "xgboost_pipeline.pkl"
 
@@ -66,6 +67,17 @@ OPERATING_MODE_OPTIONS = {
     "normal": "normal",
     "peak": "peak",
 }
+
+
+def _original_feature_name(transformed_feature_name):
+    feature_name = transformed_feature_name.split("__", 1)[-1]
+    for original_feature_name in sorted(MODEL_COLUMNS, key=len, reverse=True):
+        if (
+            feature_name == original_feature_name
+            or feature_name.startswith(f"{original_feature_name}_")
+        ):
+            return original_feature_name
+    return feature_name
 
 
 @lru_cache(maxsize=1)
@@ -147,6 +159,53 @@ def predict_failure(input_data):
     probability = float(model.predict_proba(input_df)[0][1])
 
     return prediction, probability
+
+
+def explain_failure_prediction(input_data, top_n=6):
+    model = load_model()
+    normalized_data = normalize_input_data(input_data)
+    input_df = pd.DataFrame([normalized_data])
+
+    preprocess = model.named_steps["preprocess"]
+    classifier = model.named_steps["classifier"]
+    transformed_input = preprocess.transform(input_df)
+    transformed_feature_names = preprocess.get_feature_names_out()
+
+    dmatrix = xgb.DMatrix(transformed_input)
+    shap_contributions = classifier.get_booster().predict(dmatrix, pred_contribs=True)[0]
+
+    feature_impacts = {feature_name: 0.0 for feature_name in MODEL_COLUMNS}
+    for transformed_feature_name, shap_value in zip(
+        transformed_feature_names,
+        shap_contributions[:-1],
+    ):
+        original_feature_name = _original_feature_name(transformed_feature_name)
+        feature_impacts[original_feature_name] = (
+            feature_impacts.get(original_feature_name, 0.0) + float(shap_value)
+        )
+
+    explanation = []
+    for feature_name, shap_value in feature_impacts.items():
+        explanation.append(
+            {
+                "feature": feature_name,
+                "value": normalized_data[feature_name],
+                "shap_value": shap_value,
+                "direction": "increase" if shap_value >= 0 else "decrease",
+            }
+        )
+
+    return sorted(
+        explanation,
+        key=lambda item: abs(item["shap_value"]),
+        reverse=True,
+    )[:top_n]
+
+
+def predict_failure_with_explanation(input_data):
+    prediction, probability = predict_failure(input_data)
+    explanation = explain_failure_prediction(input_data)
+    return prediction, probability, explanation
 
 if __name__ == "__main__":
 
