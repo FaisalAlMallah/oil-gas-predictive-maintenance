@@ -229,3 +229,6 @@ __pycache__/
 AGENT.md
 .vercel
 .env*
+
+mlruns/
+mlflow.db
