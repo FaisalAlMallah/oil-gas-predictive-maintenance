@@ -486,13 +486,13 @@
 
             const groups = [
                 {
-                    title: "Reasons the machine looks healthy",
+                    title: "Factors reducing risk",
                     items: sortedExplanation.filter((item) => item.direction !== "increase"),
                     barClass: "healthy",
                     label: "Lower risk"
                 },
                 {
-                    title: "Reasons to watch",
+                    title: "Factors increasing risk",
                     items: sortedExplanation.filter((item) => item.direction === "increase"),
                     barClass: isHighRisk ? "high-risk" : "watch",
                     label: "Raises risk"
